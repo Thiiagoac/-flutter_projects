@@ -3,20 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 
-import '../todo.dart';
+import '../models/todo.dart';
 
-class TodoListItem extends StatefulWidget {
-  const TodoListItem({super.key, required this.tarefa});
+class TodoListItem extends StatelessWidget {
+  const TodoListItem({super.key, required this.tarefa, required this.onDelete});
 
   final Todo tarefa;
+  final Function(Todo) onDelete;
 
-  @override
-  State<TodoListItem> createState() => _TodoListItemState();
-}
-
-class _TodoListItemState extends State<TodoListItem>
-    with SingleTickerProviderStateMixin {
-  late final controller = SlidableController(this);
+  //late final controller = SlidableController(this);
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +28,7 @@ class _TodoListItemState extends State<TodoListItem>
                 bottomRight: Radius.circular(4),
               ),
               onPressed: (event) => {
-                print('deletou')
+                onDelete(tarefa)
               },
               backgroundColor: Color(0xFFE10000),
               foregroundColor: Colors.white,
@@ -52,14 +47,14 @@ class _TodoListItemState extends State<TodoListItem>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                DateFormat('dd/MM/yyyy - HH:mm').format(widget.tarefa.dateTime),
+                DateFormat('dd/MM/yyyy - HH:mm').format(tarefa.dateTime),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
                 ),
               ),
               Text(
-                widget.tarefa.title,
+                tarefa.title,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
