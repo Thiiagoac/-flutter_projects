@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lista_tarefas/widgets/todo_list_item.dart';
 
-import '../todo.dart';
+import '../models/todo.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -13,6 +13,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   TextEditingController controllerTarefa = TextEditingController();
   List<Todo> tarefas = [];
+  Todo? deletedTodo;
+  int? deletedTodoIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -78,9 +80,7 @@ class _HomePageState extends State<HomePage> {
                     shrinkWrap: true,
                     children: [
                       for (Todo todo in tarefas)
-                        TodoListItem(
-                          tarefa: todo,
-                        ),
+                        TodoListItem(tarefa: todo, onDelete: onDelete),
                     ],
                   ),
                 ),
@@ -125,15 +125,84 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void onDelete(Todo todo) {
+    deletedTodo = todo;
+    deletedTodoIndex = tarefas.indexOf(todo);
+
+    setState(() {
+      tarefas.remove(todo);
+    });
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Tarefa ${todo.title} foi removida com sucesso!',
+          style: const TextStyle(
+            color: Color(0xff060708),
+          ),
+        ),
+        backgroundColor: Colors.white,
+        action: SnackBarAction(
+          textColor: const Color(0xff00d7f3),
+          label: 'Desfazer',
+          onPressed: () {
+            setState(() {
+              tarefas.insert(deletedTodoIndex!, deletedTodo!);
+            });
+          },
+        ),
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
+
   void adicionarTarefa() {
     setState(() {
-      Todo newTodo = Todo(title: controllerTarefa.text, dateTime: DateTime.now());
+      Todo newTodo =
+      Todo(title: controllerTarefa.text, dateTime: DateTime.now());
       tarefas.add(newTodo);
     });
     controllerTarefa.clear();
   }
 
   limparTudo() {
+    showDialog(
+      context: context,
+      builder: (context) =>
+          AlertDialog(
+            title: Text(
+              'Limpar tudo?',
+            ),
+            content: Text(
+              'Você tem certeza que deseja apagar todas as tarefas?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: TextButton.styleFrom(foregroundColor: Color(0xff00d7f3)),
+                child: Text(
+                  'Cancelar',
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  clearTodos();
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: Text(
+                  'Limpar',
+                ),
+              ),
+
+            ],
+          ),
+    );
+  }
+
+  void clearTodos() {
     setState(() {
       tarefas.clear();
     });
