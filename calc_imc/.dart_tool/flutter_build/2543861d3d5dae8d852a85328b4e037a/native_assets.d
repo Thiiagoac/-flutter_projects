@@ -1,0 +1,1 @@
+ E:\\Estudos\\flutter_projects\\calc_imc\\.dart_tool\\flutter_build\\2543861d3d5dae8d852a85328b4e037a\\native_assets.yaml: 
