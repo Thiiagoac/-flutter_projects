@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lista_tarefas/repositories/todo_repository.dart';
 import 'package:lista_tarefas/widgets/todo_list_item.dart';
 
 import '../models/todo.dart';
@@ -11,10 +12,25 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  TextEditingController controllerTarefa = TextEditingController();
+  final TextEditingController controllerTarefa = TextEditingController();
+  final TodoRepository todoRepository = TodoRepository();
+
   List<Todo> tarefas = [];
+
   Todo? deletedTodo;
   int? deletedTodoIndex;
+
+  String? errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    todoRepository.getList().then((value) {
+      setState(() {
+        tarefas = value;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,10 +57,18 @@ class _HomePageState extends State<HomePage> {
                       flex: 4,
                       child: TextField(
                         controller: controllerTarefa,
-                        decoration: const InputDecoration(
+                        onSubmitted: ,
+                        decoration: InputDecoration(
+                          focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Color(0xff00d7f3), width: 2)),
                           labelText: 'Adicione uma tarefa',
+                          labelStyle: const TextStyle(
+                            color: Color(0xff00d7f3),
+                          ),
                           hintText: 'Ex: Estudar flutter',
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
+                          errorText: errorText,
                         ),
                       ),
                     ),
@@ -132,6 +156,8 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       tarefas.remove(todo);
     });
+    todoRepository.saveList(tarefas);
+
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -149,6 +175,7 @@ class _HomePageState extends State<HomePage> {
             setState(() {
               tarefas.insert(deletedTodoIndex!, deletedTodo!);
             });
+            todoRepository.saveList(tarefas);
           },
         ),
         duration: const Duration(seconds: 5),
@@ -157,48 +184,59 @@ class _HomePageState extends State<HomePage> {
   }
 
   void adicionarTarefa() {
+    String text = controllerTarefa.text;
+
+    if (text.isEmpty) {
+      setState(() {
+        errorText = 'Preencha o campo da tarefa';
+      });
+      return;
+    }
+
     setState(() {
-      Todo newTodo =
-      Todo(title: controllerTarefa.text, dateTime: DateTime.now());
+      Todo newTodo = Todo(
+        title: text,
+        dateTime: DateTime.now(),
+      );
       tarefas.add(newTodo);
+      errorText = null;
     });
     controllerTarefa.clear();
+    todoRepository.saveList(tarefas);
   }
 
   limparTudo() {
     showDialog(
       context: context,
-      builder: (context) =>
-          AlertDialog(
-            title: Text(
-              'Limpar tudo?',
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Limpar tudo?',
+        ),
+        content: const Text(
+          'Você tem certeza que deseja apagar todas as tarefas?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            style: TextButton.styleFrom(foregroundColor: const Color(0xff00d7f3)),
+            child: const Text(
+              'Cancelar',
             ),
-            content: Text(
-              'Você tem certeza que deseja apagar todas as tarefas?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                style: TextButton.styleFrom(foregroundColor: Color(0xff00d7f3)),
-                child: Text(
-                  'Cancelar',
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  clearTodos();
-                },
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: Text(
-                  'Limpar',
-                ),
-              ),
-
-            ],
           ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              clearTodos();
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text(
+              'Limpar',
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -206,5 +244,6 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       tarefas.clear();
     });
+    todoRepository.saveList(tarefas);
   }
 }
