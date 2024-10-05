@@ -18,9 +18,9 @@ class _HomePageState extends State<HomePage> {
   Future<Map> _getGifs() async {
     http.Response response;
     if (_search == null) {
-      response = await http.get(Uri.parse('URLDOGIPHY TRENDING'));
+      response = await http.get(Uri.parse('https://api.giphy.com/v1/gifs/trending?api_key=API_KEY&limit=20&offset=0&rating=g&bundle=messaging_non_clips'));
     } else {
-      response = await http.get(Uri.parse('URLDOGIPHY SEARCH'));
+      response = await http.get(Uri.parse('https://api.giphy.com/v1/gifs/search?api_key=API_KEY&q=$_search&limit=20&offset=$_offset&rating=g&lang=en&bundle=messaging_non_clips'));
     }
     return json.decode(response.body);
   }
@@ -29,9 +29,9 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
-    // _getGifs().then((map) {
-    //   print(map);
-    // });
+    _getGifs().then((map) {
+      print(map);
+    });
   }
 
   @override
@@ -74,7 +74,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   default:
-                    return Container();
+                    if (snapshot.hasError) return Container();
+                    else return _createGifTable(context, snapshot);
                 }
               }
             ),
@@ -82,5 +83,9 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  Widget _createGifTable(BuildContext context, AsyncSnapshot snapshot) {
+    return Container();
   }
 }
