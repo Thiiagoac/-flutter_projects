@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import '../helpers/contact_helper.dart';
@@ -33,11 +34,11 @@ class _ContactPageState extends State<ContactPage> {
     } else {
       _editedContact = Contact.fromMap(widget.contact!.toMap());
       _nameController.text =
-          _editedContact.name != null ? _editedContact.name! : '';
+      _editedContact.name != null ? _editedContact.name! : '';
       _emailController.text =
-          _editedContact.email != null ? _editedContact.email! : '';
+      _editedContact.email != null ? _editedContact.email! : '';
       _phoneController.text =
-          _editedContact.phone != null ? _editedContact.phone! : '';
+      _editedContact.phone != null ? _editedContact.phone! : '';
     }
   }
 
@@ -82,17 +83,27 @@ class _ContactPageState extends State<ContactPage> {
           child: Column(
             children: [
               GestureDetector(
+                onTap: () {
+                  ImagePicker.platform
+                      .getImageFromSource(source: ImageSource.camera)
+                      .then((file) {
+                    if (file == null) return;
+                    setState(() {
+                      _editedContact.img = file!.path;
+                    });
+                  });
+                },
                 child: Container(
                   width: 140,
                   height: 140,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
-                      image: _editedContact.img != null
-                          ? FileImage(File(_editedContact.img!))
-                              as ImageProvider
-                          : const AssetImage('images/person.png'),
-                    ),
+                        image: _editedContact.img != null
+                            ? FileImage(File(_editedContact.img!))
+                        as ImageProvider
+                            : const AssetImage('images/person.png'),
+                        fit: BoxFit.cover),
                   ),
                 ),
               ),
@@ -132,40 +143,45 @@ class _ContactPageState extends State<ContactPage> {
     );
   }
 
-
   Future<bool?> _showBackDialog(BuildContext context) {
     if (_userEdited) {
-    return showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Descartar alterações?'),
-          content: const Text(
-            'Se você sair as alterações serão perdidas.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.pop(context, false);
-              },
+      return showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Descartar alterações?'),
+            content: const Text(
+              'Se você sair as alterações serão perdidas.',
             ),
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
+            actions: <Widget>[
+              TextButton(
+                style: TextButton.styleFrom(
+                  textStyle: Theme
+                      .of(context)
+                      .textTheme
+                      .labelLarge,
+                ),
+                child: const Text('Cancelar'),
+                onPressed: () {
+                  Navigator.pop(context, false);
+                },
               ),
-              child: const Text('Sair'),
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
-            ),
-          ],
-        );
-      },
-    );
+              TextButton(
+                style: TextButton.styleFrom(
+                  textStyle: Theme
+                      .of(context)
+                      .textTheme
+                      .labelLarge,
+                ),
+                child: const Text('Sair'),
+                onPressed: () {
+                  Navigator.pop(context, true);
+                },
+              ),
+            ],
+          );
+        },
+      );
     } else {
       return Future.value(true);
     }

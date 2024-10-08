@@ -1,7 +1,12 @@
 import 'package:contact_schedule/helpers/contact_helper.dart';
 import 'package:contact_schedule/ui/contact_page.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
+
+import 'package:url_launcher/url_launcher_string.dart';
+
+enum OrderOptions { orderaz, orderza }
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -30,6 +35,20 @@ class _HomePageState extends State<HomePage> {
         foregroundColor: Colors.white,
         backgroundColor: Colors.red,
         centerTitle: true,
+        actions: [
+          PopupMenuButton<OrderOptions>(
+              itemBuilder: (context) => <PopupMenuEntry<OrderOptions>>[
+                    const PopupMenuItem<OrderOptions>(
+                      child: Text('Ordenar de A-Z'),
+                      value: OrderOptions.orderaz,
+                    ),
+                    const PopupMenuItem<OrderOptions>(
+                      child: Text('Ordenar de Z-A'),
+                      value: OrderOptions.orderza,
+                    ),
+                  ],
+              onSelected: _orderList),
+        ],
       ),
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
@@ -134,12 +153,15 @@ class _HomePageState extends State<HomePage> {
               builder: (context) {
                 return Container(
                   padding: const EdgeInsets.all(10),
-                  child:  Column(
+                  child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const TextButton(
-                        onPressed: null,
-                        child: Text(
+                      TextButton(
+                        onPressed: () {
+                          launchUrlString('tel:${contacts[index].phone}');
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
                           'Ligar',
                           style: TextStyle(color: Colors.red, fontSize: 20),
                         ),
@@ -176,8 +198,24 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
-  void _callContact(){
+  void _orderList(OrderOptions result) {
+    switch (result) {
+      case OrderOptions.orderaz:
+        contacts.sort((a, b) {
+          return a.name!.toLowerCase().compareTo(b.name!.toLowerCase());
+        });
+        break;
+      case OrderOptions.orderza:
+        contacts.sort((a, b) {
+          return b.name!.toLowerCase().compareTo(a.name!.toLowerCase());
+        });
+        break;
+      default:
+        break;
+    }
+    setState(() {
 
+    });
   }
 
   void _showContactPage({Contact? contact}) async {
@@ -198,14 +236,12 @@ class _HomePageState extends State<HomePage> {
       }
       _getAllContacts();
     }
-
   }
 
   void _getAllContacts() {
     helper.getAllContacts().then((list) {
       setState(() {
         contacts = list;
-        print(contacts);
       });
     });
   }
